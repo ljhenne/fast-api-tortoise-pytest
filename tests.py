@@ -1,7 +1,7 @@
 # mypy: no-disallow-untyped-decorators
 # pylint: disable=E0611,E0401
 import asyncio
-from typing import Generator
+from typing import Generator, Iterator
 
 import pytest
 from fastapi.testclient import TestClient
@@ -20,8 +20,10 @@ def client() -> Generator:
 
 
 @pytest.fixture(scope="module")
-def event_loop(client: TestClient) -> Generator:
-    yield client.task.get_loop()  # type: ignore
+def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 def test_create_user(client: TestClient, event_loop: asyncio.AbstractEventLoop):  # nosec
